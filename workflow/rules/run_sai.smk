@@ -26,6 +26,8 @@ rule analyze_lit_samples:
         src = rules.extract_nea_samples.output.samples,
     output:
         scores = "results/sai/Lithuanians/lit.scores.txt",
+        u_outliers = "results/sai/Lithuanians/lit_U_outliers.tsv",
+        q_outliers = "results/sai/Lithuanians/lit_Q95_outliers.tsv",
     params:
         chr_name = 6,
         win_len = 50000,
@@ -33,9 +35,14 @@ rule analyze_lit_samples:
         w = 0.3,
         x = 0.5,
         y = 1,
+        q = 0.95,
+        output_dir = "results/sai/Lithuanians",
+        output_prefix = "lit",
+        outlier_quantile = 0.99,
     resources:
         cpus = 32, mem_gb = 32,
     shell:
         """
-        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
+        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
+        sai outlier --score {output.scores} --output-dir {params.output_dir} --output-prefix {params.output_prefix} --quantile {params.outlier_quantile}
         """

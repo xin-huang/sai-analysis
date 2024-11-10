@@ -24,6 +24,8 @@
 rule all:
     input:
         "results/sai/Lithuanians/lit.scores.txt",
+        "results/sai/Lithuanians/lit_U_outliers.tsv",
+        "results/sai/Lithuanians/lit_Q95_outliers.tsv",
 
 
 ##### Modules #####
