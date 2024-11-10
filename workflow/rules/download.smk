@@ -50,6 +50,17 @@ rule download_nea_genome:
         """
 
 
+rule extract_nea_samples:
+    input:
+        vcf = rules.download_nea_genome.output.vcf,
+    output:
+        samples = "results/processed_data/Lithuanians/nea.samples.txt"
+    shell:
+        """
+        bcftools query -l {input.vcf} | awk '{{print "NEA\\t"$0}}' > {output.samples}
+        """
+
+
 rule download_1KG_genomes:
     input:
     output:

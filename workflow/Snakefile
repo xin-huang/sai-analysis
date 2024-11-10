@@ -23,7 +23,7 @@
 
 rule all:
     input:
-        "results/processed_data/Lithuanians/merged_lit_yri_nea.chr6.vcf.gz",
+        "results/sai/Lithuanians/lit.scores.txt",
 
 
 ##### Modules #####
@@ -31,3 +31,4 @@ rule all:
 
 include: "rules/download.smk"
 include: "rules/preprocess.smk"
+include: "rules/run_sai.smk"

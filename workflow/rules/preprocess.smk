@@ -119,6 +119,20 @@ rule beagle_imputation_with_ref:
         """
 
 
+rule extract_lit_samples:
+    input:
+        vcf = rules.beagle_imputation_with_ref.output.vcf,
+        yri_samples = rules.extract_yoruba_eur_samples.output.yri_samples,
+    output:
+        yri_samples = "results/processed_data/Lithuanians/yri.samples.txt",
+        lit_samples = "results/processed_data/Lithuanians/lit.samples.txt",
+    shell:
+        """
+        awk '{{print "YRI\\t"$0}}' {input.yri_samples} > {output.yri_samples}
+        bcftools query -l {input.vcf} | awk '{{print "LIT\\t"$0}}' > {output.lit_samples}
+        """
+
+
 rule merge_lit_yri:
     input:
         vcf1 = rules.beagle_imputation_with_ref.output.vcf,
@@ -152,6 +166,5 @@ rule merge_lit_yri_nea:
         bgzip -c dir/0001.vcf > dir/0001.vcf.gz
         tabix -p vcf dir/0001.vcf.gz
         bcftools merge dir/0000.vcf.gz dir/0001.vcf.gz | bcftools view -v snps -m 2 -M 2 | bgzip -c > {output.vcf}
-        tabix -p vcf {output.vcf}
         rm -r dir
         """
