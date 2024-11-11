@@ -48,3 +48,19 @@ rule merge_1KG_Nea:
         bcftools merge {params.dir}/0000.vcf.gz {params.dir}/0001.vcf.gz | bcftools view -v snps -m 2 -M 2 | bcftools annotate -x 'FORMAT' | bcftools annotate -x 'INFO' | bgzip -c > {output.vcf}
         rm -r {params.dir}
         """
+
+
+rule create_ref_tgt_samples:
+    input:
+        samples = rules.download_1KG_info.output.samples,
+    output:
+        ref = "results/processed_data/1KG/1KG.ref.samples.txt",
+        tgt = "results/processed_data/1KG/1KG.tgt.samples.txt",
+    shell:
+        """
+        grep -w 'AFR' {input.samples} | grep -v ACB | grep -v ASW | awk '{{print $3"\\t"$1}}' > {output.ref}
+        grep -w 'EUR' {input.samples} | awk '{{print $3"\\t"$1}}' > {output.tgt}
+        grep -w 'EAS' {input.samples} | awk '{{print $3"\\t"$1}}' >> {output.tgt}
+        grep -w 'SAS' {input.samples} | awk '{{print $3"\\t"$1}}' >> {output.tgt}
+        grep -w 'AMR' {input.samples} | awk '{{print $3"\\t"$1}}' >> {output.tgt}
+        """
