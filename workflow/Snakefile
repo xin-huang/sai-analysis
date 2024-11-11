@@ -18,19 +18,24 @@
 #    https://www.gnu.org/licenses/gpl-3.0.en.html
 
 
+import numpy as np
+
+
 ##### Target rules #####
 
 
 rule all:
     input:
-        "results/sai/Lithuanians/lit.scores.txt",
-        "results/sai/Lithuanians/lit_U_outliers.tsv",
-        "results/sai/Lithuanians/lit_Q95_outliers.tsv",
+        expand("results/processed_data/1KG/merged_1KG_nea.chr{i}.vcf.gz", i=np.arange(22)+1)
+        #"results/sai/Lithuanians/lit.scores.txt",
+        #"results/sai/Lithuanians/lit_U_outliers.tsv",
+        #"results/sai/Lithuanians/lit_Q95_outliers.tsv",
 
 
 ##### Modules #####
 
 
 include: "rules/download.smk"
-include: "rules/preprocess.smk"
-include: "rules/run_sai.smk"
+include: "rules/preprocess_1KG.smk"
+#include: "rules/preprocess.smk"
+#include: "rules/run_sai.smk"

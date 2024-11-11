@@ -37,16 +37,14 @@ rule download_lithuanian_genomes:
 rule download_nea_genome:
     input:
     output:
-        vcf = "resources/data/NeaAltai/chr6_mq25_mapab100.vcf.gz",
-        index = "resources/data/NeaAltai/chr6_mq25_mapab100.vcf.gz.tbi",
-        download_flag = "resources/flags/.neanderthal_genomes.downloaded",
+        vcf = "resources/data/NeaAltai/chr{i}_mq25_mapab100.vcf.gz",
+        index = "resources/data/NeaAltai/chr{i}_mq25_mapab100.vcf.gz.tbi",
     shell:
         """
-        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/VCF/Altai/chr6_mq25_mapab100.vcf.gz
-        mv chr6_mq25_mapab100.vcf.gz {output.vcf}
-        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/VCF/Altai/chr6_mq25_mapab100.vcf.gz.tbi
-        mv chr6_mq25_mapab100.vcf.gz.tbi {output.index}
-        touch {output.download_flag}
+        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/VCF/Altai/chr{wildcards.i}_mq25_mapab100.vcf.gz
+        mv chr{wildcards.i}_mq25_mapab100.vcf.gz {output.vcf}
+        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/VCF/Altai/chr{wildcards.i}_mq25_mapab100.vcf.gz.tbi
+        mv chr{wildcards.i}_mq25_mapab100.vcf.gz.tbi {output.index}
         """
 
 
@@ -64,23 +62,29 @@ rule extract_nea_samples:
 rule download_1KG_genomes:
     input:
     output:
-        vcf = "resources/data/1KG/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-        ref = "resources/data/1KG/human_g1k_v37.fasta",
-        index = "resources/data/1KG/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi",
-        samples = "resources/data/1KG/integrated_call_samples_v3.20130502.ALL.panel",
-        download_flag = "resources/flags/.1KG_genomes.downloaded",
+        vcf = "resources/data/1KG/ALL.chr{i}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
+        index = "resources/data/1KG/ALL.chr{i}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi",
     shell:
         """
-        wget -c https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz
-        mv ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz {output.vcf}
-        wget -c https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi
-        mv ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi {output.index}
+        wget -c https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr{wildcards.i}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz
+        mv ALL.chr{wildcards.i}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz {output.vcf}
+        wget -c https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.chr{wildcards.i}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi
+        mv ALL.chr{wildcards.i}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi {output.index}
+        """
+
+
+rule download_1KG_info:
+    input:
+    output:
+        ref = "resources/data/1KG/human_g1k_v37.fasta",
+        samples = "resources/data/1KG/integrated_call_samples_v3.20130502.ALL.panel",
+    shell:
+        """
         wget -c https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/integrated_call_samples_v3.20130502.ALL.panel
         mv integrated_call_samples_v3.20130502.ALL.panel {output.samples}
         wget -c https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
         gzip -d human_g1k_v37.fasta.gz || true
         mv human_g1k_v37.fasta {output.ref}
-        touch {output.download_flag}
         """
 
 
