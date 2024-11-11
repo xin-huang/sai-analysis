@@ -64,3 +64,14 @@ rule create_ref_tgt_samples:
         grep -w 'SAS' {input.samples} | awk '{{print $3"\\t"$1}}' >> {output.tgt}
         grep -w 'AMR' {input.samples} | awk '{{print $3"\\t"$1}}' >> {output.tgt}
         """
+
+
+rule create_src_samples:
+    input:
+        vcf = "resources/data/NeaAltai/chr21_mq25_mapab100.vcf.gz",
+    output:
+        nea_sample = "results/processed_data/1KG/nea.sample.txt",
+    shell:
+        """
+        bcftools query -l {input.vcf} | awk '{{print "NEA\\t"$0}}' > {output.nea_sample}
+        """

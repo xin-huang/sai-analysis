@@ -26,8 +26,7 @@ import numpy as np
 
 rule all:
     input:
-        "results/processed_data/1KG/1KG.ref.samples.txt",
-        "results/processed_data/1KG/1KG.tgt.samples.txt",
+        expand("results/sai/1KG/1KG.chr{i}.scores.txt", i=np.arange(22)+1)
         #"results/sai/Lithuanians/lit.scores.txt",
         #"results/sai/Lithuanians/lit_U_outliers.tsv",
         #"results/sai/Lithuanians/lit_Q95_outliers.tsv",
@@ -38,5 +37,5 @@ rule all:
 
 include: "rules/download.smk"
 include: "rules/preprocess_1KG.smk"
-#include: "rules/preprocess.smk"
-#include: "rules/run_sai.smk"
+#include: "rules/preprocess_lit.smk"
+include: "rules/run_sai.smk"
