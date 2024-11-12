@@ -22,11 +22,22 @@ rule extract_1KG_biallelic_snps:
     input:
         vcf = rules.download_1KG_genomes.output.vcf,
     output:
-        vcf = "results/processed_data/1KG/1KG.chr{i}.biallelic.snps.vcf.gz",
+        vcf = "results/processed_data/1KG/snps/1KG.chr{i}.biallelic.snps.vcf.gz",
     shell:
         """
         bcftools view {input.vcf} -m 2 -M 2 -v snps | bgzip -c > {output.vcf}
         tabix -p vcf {output.vcf}
+        """
+
+
+rule extract_1KG_anc_alleles:
+    input:
+        vcf = rules.extract_1KG_biallelic_snps.output.vcf,
+    output:
+        info = "results/processed_data/1KG/anc_alleles/1KG.chr{i}.anc.alleles.bed",
+    shell:
+        """
+        bcftools query -f "%CHROM\\t%POS\\t%POS\\t%INFO/AA\\n" {input.vcf} | awk '$4!~/\\.\\|\\|\\|/' | sed 's/|//g' |sed 's/[atcg]/\\U&/' | awk '$4~/[ATCG]/' | awk '{{print $1"\\t"$2"\\t"$3+1"\\t"$4}}' > {output.info}
         """
 
 
@@ -35,7 +46,7 @@ rule merge_1KG_Nea:
         vcf1 = rules.extract_1KG_biallelic_snps.output.vcf, 
         vcf2 = rules.download_nea_genome.output.vcf,
     output:
-        vcf = "results/processed_data/1KG/merged_1KG_nea.chr{i}.vcf.gz",
+        vcf = "results/processed_data/1KG/merged/merged_1KG_nea.chr{i}.vcf.gz",
     params:
         dir = "dir_{i}",
     shell:
