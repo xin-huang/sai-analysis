@@ -48,6 +48,20 @@ rule download_nea_genome:
         """
 
 
+rule download_den_genome:
+    input:
+    output:
+        vcf = "resources/data/Denisova/chr{i}_mq25_mapab100.vcf.gz",
+        index = "resources/data/Denisova/chr{i}_mq25_mapab100.vcf.gz.tbi",
+    shell:
+        """
+        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/VCF/Denisova/chr{wildcards.i}_mq25_mapab100.vcf.gz
+        mv chr{wildcards.i}_mq25_mapab100.vcf.gz {output.vcf}
+        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/VCF/Denisova/chr{wildcards.i}_mq25_mapab100.vcf.gz.tbi
+        mv chr{wildcards.i}_mq25_mapab100.vcf.gz.tbi {output.index}
+        """
+
+
 rule extract_nea_samples:
     input:
         vcf = rules.download_nea_genome.output.vcf,

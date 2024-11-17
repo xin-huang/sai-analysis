@@ -24,7 +24,6 @@ rule analyze_1KG_samples:
         ref = rules.create_ref_tgt_samples.output.ref,
         tgt = rules.create_ref_tgt_samples.output.tgt,
         src = rules.create_src_samples.output.nea_sample,
-        anc_alleles = rules.extract_1KG_anc_alleles.output.info,
     output:
         scores = "results/sai/1KG/1KG.chr{i}.scores.txt",
     params:
@@ -36,10 +35,10 @@ rule analyze_1KG_samples:
         y = 1,
         q = 0.95,
     resources:
-        cpus = 32, mem_gb = 32,
+        cpus = 1, mem_gb = 48,
     shell:
         """
-        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --anc-alleles {input.anc_alleles} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
+        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
         """
 
 
