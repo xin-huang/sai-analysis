@@ -52,6 +52,7 @@ rule merge_1KG_Nea:
     shell:
         """
         bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=5010" | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
         """
 
 
@@ -66,6 +67,7 @@ rule merge_1KG_Den:
     shell:
         """
         bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=5010" | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
         """
 
 
