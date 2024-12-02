@@ -1,9 +1,10 @@
 .snakemake
+*.gz
+*.out
+*.sh
 logs
 logs_slurm
 resources/data
 resources/flags
 resources/tools/beagle
 results
-*.out
-*.sh
