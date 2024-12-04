@@ -26,7 +26,7 @@ import numpy as np
 
 rule all:
     input:
-        expand("results/processed_data/Lithuanians/lit.chr{chromo}.imputed.vcf.gz", chromo=np.arange(22)+1)
+        expand("results/sai/Lithuanians/lit.chr{i}.scores.txt", i=np.arange(22)+1)
 
 
 ##### Modules #####
@@ -35,4 +35,4 @@ rule all:
 include: "rules/download.smk"
 #include: "rules/preprocess_1KG.smk"
 include: "rules/preprocess_lit.smk"
-#include: "rules/run_sai.smk"
+include: "rules/run_sai.smk"
