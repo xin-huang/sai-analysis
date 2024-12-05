@@ -136,7 +136,7 @@ rule extract_lit_samples:
         """
 
 
-rule extract_nea_samples:
+rule extract_nea_sample:
     input:
         vcf = "resources/data/NeaAltai/chr21_mq25_mapab100.vcf.gz",
     output:
@@ -144,6 +144,17 @@ rule extract_nea_samples:
     shell:
         """
         bcftools query -l {input.vcf} | awk '{{print "NEA\\t"$0}}' > {output.nea_sample}
+        """
+
+
+rule extract_den_sample:
+    input:
+        vcf = "resources/data/Denisova/chr21_mq25_mapab100.vcf.gz",
+    output:
+        den_sample = "results/processed_data/Lithuanians/den.sample.txt",
+    shell:
+        """
+        bcftools query -l {input.vcf} | awk '{{print "DEN\\t"$0}}' > {output.den_sample}
         """
 
 
