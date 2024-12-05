@@ -42,26 +42,26 @@
 #        """
 
 
-rule analyze_lit_samples:
+rule analyze_lit_nea_samples:
     input:
         vcf = rules.merge_lit_yri_nea.output.vcf,
         ref = rules.extract_lit_samples.output.yri_samples,
         tgt = rules.extract_lit_samples.output.lit_samples,
         src = rules.extract_nea_samples.output.nea_sample,
     output:
-        scores = "results/sai/Lithuanians/lit.chr{i}.scores.txt",
-        u_outliers = "results/sai/Lithuanians/lit.chr{i}_U_outliers.tsv",
-        q_outliers = "results/sai/Lithuanians/lit.chr{i}_Q95_outliers.tsv",
+        scores = "results/sai/Lithuanians/lit.nea.chr{i}.w_{w}_x_{x}.scores.txt",
+        u_outliers = "results/sai/Lithuanians/lit.nea.chr{i}.w_{w}_x_{x}_U_outliers.tsv",
+        q_outliers = "results/sai/Lithuanians/lit.nea.chr{i}.w_{w}_x_{x}_Q95_outliers.tsv",
     params:
         chr_name = "{i}",
         win_len = 50000,
         win_step = 10000,
-        w = 0.3,
-        x = 0.5,
+        w = "{w}",
+        x = "{x}",
         y = 1,
         q = 0.95,
         output_dir = "results/sai/Lithuanians",
-        output_prefix = "lit.chr{i}",
+        output_prefix = "lit.nea.chr{i}.w_{w}_x_{x}",
         outlier_quantile = 0.99,
     resources:
         cpus = 1, mem_gb = 32,
