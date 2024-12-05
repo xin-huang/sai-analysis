@@ -158,6 +158,19 @@ rule extract_den_sample:
         """
 
 
+rule extract_nea_den_samples:
+    input:
+        nea_sample = rules.extract_nea_sample.output.nea_sample,
+        den_sample = rules.extract_den_sample.output.den_sample,
+    output:
+        nea_den_samples = "results/processed_data/Lithuanians/nea.den.samples.txt",
+    shell:
+        """
+        cat {input.nea_sample} > {output.nea_den_samples}
+        cat {input.den_sample} >> {output.nea_den_samples}
+        """
+
+
 rule merge_lit_yri:
     input:
         vcf1 = rules.beagle_imputation_with_ref.output.vcf,
