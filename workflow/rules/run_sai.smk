@@ -42,7 +42,7 @@
 #        """
 
 
-rule analyze_lit_samples:
+rule analyze_lit_1src_samples:
     input:
         vcf = rules.merge_lit_yri_src.output.vcf,
         ref = rules.extract_lit_samples.output.yri_samples,
@@ -66,7 +66,7 @@ rule analyze_lit_samples:
         """
 
 
-rule get_lit_samples_outliers:
+rule get_lit_1src_samples_outliers:
     input:
         scores = expand("results/sai/Lithuanians/{src}/w_{w}_x_{x}_y_{y}/lit.{src}.chr{i}.w_{w}_x_{x}_y_{y}.scores.tsv", i=list(range(1,23)), allow_missing=True),
     output:
@@ -77,7 +77,7 @@ rule get_lit_samples_outliers:
         outlier_quantile = 0.99,
     shell:
         """
-        set +o pipefail;
+        set +o pipefail
         cat {input.scores} | head -1 > {output.all_scores}
         cat {input.scores} | grep -v "Chrom" >> {output.all_scores}
         sai outlier --score {output.all_scores} --output {output.u_outliers} --stat-type U --quantile {params.outlier_quantile}
@@ -85,31 +85,44 @@ rule get_lit_samples_outliers:
         """
 
 
-#rule analyze_lit_nea_den_samples:
-#    input:
-#        vcf = rules.merge_lit_yri_nea_den.output.vcf,
-#        ref = rules.extract_lit_samples.output.yri_samples,
-#        tgt = rules.extract_lit_samples.output.lit_samples,
-#        src = rules.extract_nea_den_samples.output.nea_den_samples,
-#    output:
-#        scores = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}.scores.txt",
-#        u_outliers = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}_U_outliers.tsv",
-#        q_outliers = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}_Q95_outliers.tsv",
-#    params:
-#        chr_name = "{i}",
-#        win_len = 50000,
-#        win_step = 10000,
-#        w = "{w}",
-#        x = "{x}",
-#        y = "{y} {z}",
-#        q = 0.95,
-#        output_dir = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}",
-#        output_prefix = "lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}",
-#        outlier_quantile = 0.99,
-#    resources:
-#        cpus = 1, mem_gb = 32,
-#    shell:
-#        """
-#        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus} --num-src 2
-#        sai outlier --score {output.scores} --output-dir {params.output_dir} --output-prefix {params.output_prefix} --quantile {params.outlier_quantile}
-#        """
+rule analyze_lit_2src_samples:
+    input:
+        vcf = rules.merge_lit_yri_nea_den.output.vcf,
+        ref = rules.extract_lit_samples.output.yri_samples,
+        tgt = rules.extract_lit_samples.output.lit_samples,
+        src = rules.extract_nea_den_samples.output.nea_den_samples,
+    output:
+        scores = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}.scores.txt",
+    params:
+        chr_name = "{i}",
+        win_len = 50000,
+        win_step = 10000,
+        w = "{w}",
+        x = "{x}",
+        y = "{y} {z}",
+        q = 0.95,
+    resources:
+        cpus = 1, mem_gb = 32,
+    shell:
+        """
+        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus} --num-src 2
+        """
+
+
+rule get_lit_2src_samples_outliers:
+    input:
+        scores = expand("results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}.scores.tsv", i=list(range(1,23)), allow_missing=True),
+    output:
+        all_scores = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.w_{w}_x_{x}_y_{y}_z_{z}.scores.tsv",
+        u_outliers = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.w_{w}_x_{x}_y_{y}_z_{z}_U_outliers.tsv",
+        q_outliers = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.w_{w}_x_{x}_y_{y}_z_{z}_Q95_outliers.tsv",
+    params:
+        outlier_quantile = 0.99,
+    shell:
+        """
+        set +o pipefail
+        cat {input.scores} | head -1 > {output.all_scores}
+        cat {input.scores} | grep -v "Chrom" >> {output.all_scores}
+        sai outlier --score {output.all_scores} --output {output.u_outliers} --stat-type U --quantile {params.outlier_quantile}
+        sai outlier --score {output.all_scores} --output {output.q_outliers} --stat-type Q --quantile {params.outlier_quantile}
+        """
