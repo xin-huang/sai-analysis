@@ -136,32 +136,26 @@ rule extract_lit_samples:
         """
 
 
-rule extract_nea_sample:
+rule extract_src_samples:
     input:
-        vcf = "resources/data/NeaAltai/chr21_mq25_mapab100.vcf.gz",
+        nea_vcf = "resources/data/NeaAltai/chr21_mq25_mapab100.vcf.gz",
+        den_vcf = "resources/data/Denisova/chr21_mq25_mapab100.vcf.gz",
     output:
-        nea_sample = "results/processed_data/Lithuanians/nea.sample.txt",
+        src_samples = "results/processed_data/Lithuanians/{src}.samples.txt",
     shell:
         """
-        bcftools query -l {input.vcf} | awk '{{print "NEA\\t"$0}}' > {output.nea_sample}
-        """
-
-
-rule extract_den_sample:
-    input:
-        vcf = "resources/data/Denisova/chr21_mq25_mapab100.vcf.gz",
-    output:
-        den_sample = "results/processed_data/Lithuanians/den.sample.txt",
-    shell:
-        """
-        bcftools query -l {input.vcf} | awk '{{print "DEN\\t"$0}}' > {output.den_sample}
+        if [ {wildcards.src} == "nea" ]; then
+            bcftools query -l {input.nea_vcf} | awk '{{print "NEA\\t"$0}}' > {output.src_samples}
+        else
+            bcftools query -l {input.den_vcf} | awk '{{print "DEN\\t"$0}}' > {output.src_samples}
+        fi
         """
 
 
 rule extract_nea_den_samples:
     input:
-        nea_sample = rules.extract_nea_sample.output.nea_sample,
-        den_sample = rules.extract_den_sample.output.den_sample,
+        nea_sample = "results/processed_data/Lithuanians/nea.samples.txt",
+        den_sample = "results/processed_data/Lithuanians/den.samples.txt",
     output:
         nea_den_samples = "results/processed_data/Lithuanians/nea.den.samples.txt",
     shell:
@@ -186,40 +180,32 @@ rule merge_lit_yri:
         """
 
 
-rule merge_lit_yri_nea:
+rule merge_lit_yri_src:
     input:
-        vcf1 = rules.merge_lit_yri.output.vcf,
-        vcf2 = rules.download_nea_genome.output.vcf,
+        lit_yri_vcf = rules.merge_lit_yri.output.vcf,
+        nea_vcf = rules.download_nea_genome.output.vcf,
+        den_vcf = rules.download_den_genome.output.vcf,
     output:
-        vcf = "results/processed_data/Lithuanians/merged/merged_lit_yri_nea.chr{i}.vcf.gz",
+        vcf = "results/processed_data/Lithuanians/merged/merged_lit_yri_{src}.chr{i}.vcf.gz",
     shell:
         """
-        bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=318" | bgzip -c > {output.vcf}
+        if [ {wildcards.src} == "nea" ]; then
+            bcftools merge {input.lit_yri_vcf} {input.nea_vcf} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=318" | bgzip -c > {output.vcf}
+        else
+            bcftools merge {input.lit_yri_vcf} {input.den_vcf} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=318" | bgzip -c > {output.vcf}
+        fi
         tabix -p vcf {output.vcf}
         """
 
 
-rule merge_lit_yri_den:
-    input:
-        vcf1 = rules.merge_lit_yri.output.vcf,
-        vcf2 = rules.download_den_genome.output.vcf,
-    output:
-        vcf = "results/processed_data/Lithuanians/merged/merged_lit_yri_den.chr{i}.vcf.gz",
-    shell:
-        """
-        bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=318" | bgzip -c > {output.vcf}
-        tabix -p vcf {output.vcf}
-        """
-
-
-rule merge_lit_yri_nea_den:
-    input:
-        vcf1 = rules.merge_lit_yri_nea.output.vcf,
-        vcf2 = rules.download_den_genome.output.vcf,
-    output:
-        vcf = "results/processed_data/Lithuanians/merged/merged_lit_yri_nea_den.chr{i}.vcf.gz",
-    shell:
-        """
-        bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=320" | bgzip -c > {output.vcf}
-        tabix -p vcf {output.vcf}
-        """
+#rule merge_lit_yri_nea_den:
+#    input:
+#        vcf1 = rules.merge_lit_yri_nea.output.vcf,
+#        vcf2 = rules.download_den_genome.output.vcf,
+#    output:
+#        vcf = "results/processed_data/Lithuanians/merged/merged_lit_yri_nea_den.chr{i}.vcf.gz",
+#    shell:
+#        """
+#        bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=320" | bgzip -c > {output.vcf}
+#        tabix -p vcf {output.vcf}
+#        """
