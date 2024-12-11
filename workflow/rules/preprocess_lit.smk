@@ -204,6 +204,8 @@ rule merge_lit_yri_nea_den:
         vcf2 = rules.download_den_genome.output.vcf,
     output:
         vcf = "results/processed_data/Lithuanians/merged/merged_lit_yri_nea_den.chr{i}.vcf.gz",
+    resources:
+        time = 1440,
     shell:
         """
         bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=320" | bgzip -c > {output.vcf}

@@ -92,7 +92,7 @@ rule analyze_lit_2src_samples:
         tgt = rules.extract_lit_samples.output.lit_samples,
         src = rules.extract_nea_den_samples.output.nea_den_samples,
     output:
-        scores = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}.scores.txt",
+        scores = "results/sai/Lithuanians/nea_den/w_{w}_x_{x}_y_{y}_z_{z}/lit.nea.den.chr{i}.w_{w}_x_{x}_y_{y}_z_{z}.scores.tsv",
     params:
         chr_name = "{i}",
         win_len = 50000,
