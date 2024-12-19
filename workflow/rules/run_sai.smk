@@ -18,28 +18,47 @@
 #    https://www.gnu.org/licenses/gpl-3.0.en.html
 
 
-#rule analyze_1KG_samples:
-#    input:
-#        vcf = rules.merge_1KG_Nea.output.vcf,
-#        ref = rules.create_ref_tgt_samples.output.ref,
-#        tgt = rules.create_ref_tgt_samples.output.tgt,
-#        src = rules.create_src_samples.output.nea_sample,
-#    output:
-#        scores = "results/sai/1KG/1KG.chr{i}.scores.txt",
-#    params:
-#        chr_name = "{i}",
-#        win_len = 40000,
-#        win_step = 40000,
-#        w = 0.01,
-#        x = 0.5,
-#        y = 1,
-#        q = 0.95,
-#    resources:
-#        cpus = 1, mem_gb = 48,
-#    shell:
-#        """
-#        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
-#        """
+rule analyze_1KG_1src_samples:
+    input:
+        vcf = rules.merge_1KG_src.output.vcf,
+        ref = rules.create_ref_tgt_samples.output.ref,
+        tgt = rules.create_ref_tgt_samples.output.tgt,
+        src = rules.extract_src_samples.output.src_samples,
+    output:
+        scores = "results/sai/1KG/{src}/w_{w}_x_{x}_y_{y}/1KG.{src}.chr{i}.w_{w}_x_{x}_y_{y}.scores.tsv",
+    params:
+        chr_name = "{i}",
+        win_len = 40000,
+        win_step = 40000,
+        w = "{w}",
+        x = "{x}",
+        y = "{y}",
+        q = 0.95,
+    resources:
+        cpus = 1, mem_gb = 48,
+    shell:
+        """
+        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
+        """
+
+
+rule get_1KG_1src_samples_outliers:
+    input:
+        scores = expand("results/sai/1KG/{src}/w_{w}_x_{x}_y_{y}/1KG.{src}.chr{i}.w_{w}_x_{x}_y_{y}.scores.tsv", i=list(range(1,23)), allow_missing=True),
+    output:
+        all_scores = "results/sai/1KG/{src}/w_{w}_x_{x}_y_{y}/1KG.{src}.w_{w}_x_{x}_y_{y}.scores.tsv",
+        u_outliers = "results/sai/1KG/{src}/w_{w}_x_{x}_y_{y}/1KG.{src}.w_{w}_x_{x}_y_{y}_U_outliers.tsv",
+        q_outliers = "results/sai/1KG/{src}/w_{w}_x_{x}_y_{y}/1KG.{src}.w_{w}_x_{x}_y_{y}_Q95_outliers.tsv",
+    params:
+        outlier_quantile = 0.99,
+    shell:
+        """
+        set +o pipefail
+        cat {input.scores} | head -1 > {output.all_scores}
+        cat {input.scores} | grep -v "Chrom" >> {output.all_scores}
+        sai outlier --score {output.all_scores} --output {output.u_outliers} --stat-type U --quantile {params.outlier_quantile}
+        sai outlier --score {output.all_scores} --output {output.q_outliers} --stat-type Q --quantile {params.outlier_quantile}
+        """
 
 
 rule analyze_lit_1src_samples:
