@@ -61,18 +61,18 @@ rule merge_1KG_src:
         """
 
 
-#rule merge_1KG_Nea_Den:
-#    input:
-#        vcf1 = rules.merge_1KG_Nea.output.vcf, 
-#        vcf2 = rules.download_den_genome.output.vcf,
-#    output:
-#        vcf = "results/processed_data/1KG/merged/merged_1KG_nea_den.chr{i}.vcf.gz",
-#    resources:
-#        time = 4320,
-#    shell:
-#        """
-#        bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=5012" | bgzip -c > {output.vcf}
-#        """
+rule merge_1KG_nea_den:
+    input:
+        vcf1 = "results/processed_data/1KG/merged/merged_1KG_nea.chr{i}.vcf.gz", 
+        vcf2 = rules.download_den_genome.output.vcf,
+    output:
+        vcf = "results/processed_data/1KG/merged/merged_1KG_nea_den.chr{i}.vcf.gz",
+    resources:
+        time = 4320,
+    shell:
+        """
+        bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=5012" | bgzip -c > {output.vcf}
+        """
 
 
 rule create_ref_tgt_samples:
