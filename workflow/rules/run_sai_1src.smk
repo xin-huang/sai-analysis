@@ -35,7 +35,7 @@ rule analyze_1KG_1src_samples:
         y = "{y}",
         q = 0.95,
     resources:
-        cpus = 1, mem_gb = 32,
+        cpus = 1, mem_gb = 48,
     shell:
         """
         sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --phased --w {params.w} --x {params.x} --y {params.y} --q {params.q} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --workers {resources.cpus}
