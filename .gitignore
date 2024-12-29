@@ -6,5 +6,5 @@ logs
 logs_slurm
 resources/data
 resources/flags
-resources/tools/beagle
+resources/tools
 results

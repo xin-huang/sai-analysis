@@ -105,3 +105,15 @@ rule download_beagle:
         cd ../../../
         touch {output.download_flag}
         """
+
+
+rule download_annovar_db:
+    input:
+    output:
+        avsnp150 = "resources/tools/annovar/humandb/hg19_avsnp150.txt",
+        dbnsfp42c = "resources/tools/annovar/humandb/hg19_dbnsfp42c.txt",
+    shell:
+        """
+        resources/tools/annovar/annotate_variation.pl -downdb -buildver hg19 -webfrom annovar avsnp150 resources/tools/annovar/humandb/
+        resources/tools/annovar/annotate_variation.pl -downdb -buildver hg19 -webfrom annovar dbnsfp42c resources/tools/annovar/humandb/
+        """

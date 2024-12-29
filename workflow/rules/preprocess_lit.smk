@@ -211,3 +211,21 @@ rule merge_lit_yri_nea_den:
         bcftools merge {input.vcf1} {input.vcf2} | bcftools view -v snps -m 2 -M 2 -i "INFO/AN=320" | bgzip -c > {output.vcf}
         tabix -p vcf {output.vcf}
         """
+
+
+rule annotate_lit:
+    input:
+        vcf = rules.merge_lit_yri_nea_den.output.vcf,
+        avsnp150 = rules.download_annovar_db.output.avsnp150,
+        dbnsfp42c = rules.download_annovar_db.output.dbnsfp42c,
+    output:
+        vcf = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.hg19_multianno.vcf",
+        txt = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.hg19_multianno.txt",
+    resources:
+        time=2880, cpus=8, mem_gb=64,
+    params:
+        output_prefix = "results/annotated_data/lit/merged_lit_nea_den.chr{i}",
+    shell:
+        """
+        resources/tools/annovar/table_annovar.pl {input.vcf} resources/tools/annovar/humandb/ -buildver hg19 -out {params.output_prefix} -remove -protocol refGene,avsnp150,dbnsfp42c -operation g,f,f -nastring . -vcfinput --thread {resources.cpus}
+        """

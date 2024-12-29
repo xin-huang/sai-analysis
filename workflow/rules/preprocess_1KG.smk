@@ -87,3 +87,21 @@ rule create_ref_tgt_samples:
         grep -w 'EAS' {input.samples} | awk '{{print "AFR+EAS\\t"$1}}' >> {output.ref}
         grep -w 'EUR' {input.samples} | awk '{{print $3"\\t"$1}}' > {output.tgt}
         """
+
+
+rule annotate_1KG:
+    input:
+        vcf = rules.merge_1KG_nea_den.output.vcf,
+        avsnp150 = rules.download_annovar_db.output.avsnp150,
+        dbnsfp42c = rules.download_annovar_db.output.dbnsfp42c,
+    output:
+        vcf = "results/annotated_data/1KG/merged_1KG_nea_den.chr{i}.hg19_multianno.vcf",
+        txt = "results/annotated_data/1KG/merged_1KG_nea_den.chr{i}.hg19_multianno.txt",
+    resources:
+        time=2880, cpus=8, mem_gb=64,
+    params:
+        output_prefix = "results/annotated_data/1KG/merged_1KG_nea_den.chr{i}",
+    shell:
+        """
+        resources/tools/annovar/table_annovar.pl {input.vcf} resources/tools/annovar/humandb/ -buildver hg19 -out {params.output_prefix} -remove -protocol refGene,avsnp150,dbnsfp42c -operation g,f,f -nastring . -vcfinput --thread {resources.cpus}
+        """
