@@ -98,7 +98,7 @@ rule annotate_1KG:
         vcf = "results/annotated_data/1KG/merged_1KG_nea_den.chr{i}.hg19_multianno.vcf",
         txt = "results/annotated_data/1KG/merged_1KG_nea_den.chr{i}.hg19_multianno.txt",
     resources:
-        time=2880, cpus=8, mem_gb=64,
+        time=2880, cpus=8, mem_gb=256,
     params:
         output_prefix = "results/annotated_data/1KG/merged_1KG_nea_den.chr{i}",
     shell:
