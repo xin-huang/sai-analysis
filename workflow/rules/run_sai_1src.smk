@@ -83,3 +83,14 @@ rule get_1src_samples_outliers:
         sai outlier --score {output.all_scores} --output {output.u_outliers} --stat-type U --quantile {params.outlier_quantile}
         sai outlier --score {output.all_scores} --output {output.q_outliers} --stat-type Q --quantile {params.outlier_quantile}
         """
+
+
+rule get_1src_samples_candidates:
+    input:
+        annotation = rules.
+        outliers = 
+    output:
+        candidates = 
+    shell:
+        """
+        """

@@ -76,7 +76,7 @@ rule all:
 
 
 include: "rules/download.smk"
-include: "rules/preprocess_1KG.smk"
-include: "rules/preprocess_lit.smk"
+include: "rules/impute_lit.smk"
+include: "rules/preprocess.smk"
 include: "rules/run_sai_1src.smk"
 include: "rules/run_sai_2src.smk"
