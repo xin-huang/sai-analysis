@@ -222,7 +222,7 @@ rule annotate_lit:
         avinput = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.avinput",
         txt = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.hg19_multianno.txt",
     resources:
-        time=2880, cpus=8, mem_gb=64,
+        cpus=8, mem_gb=32,
     params:
         output_prefix = "results/annotated_data/lit/merged_lit_nea_den.chr{i}",
     shell:
