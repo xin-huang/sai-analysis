@@ -219,7 +219,7 @@ rule annotate_lit:
         avsnp150 = rules.download_annovar_db.output.avsnp150,
         dbnsfp42c = rules.download_annovar_db.output.dbnsfp42c,
     output:
-        vcf = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.hg19_multianno.vcf",
+        avinput = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.avinput",
         txt = "results/annotated_data/lit/merged_lit_nea_den.chr{i}.hg19_multianno.txt",
     resources:
         time=2880, cpus=8, mem_gb=64,
@@ -227,5 +227,6 @@ rule annotate_lit:
         output_prefix = "results/annotated_data/lit/merged_lit_nea_den.chr{i}",
     shell:
         """
-        resources/tools/annovar/table_annovar.pl {input.vcf} resources/tools/annovar/humandb/ -buildver hg19 -out {params.output_prefix} -remove -protocol refGene,avsnp150,dbnsfp42c -operation g,f,f -nastring . -vcfinput --thread {resources.cpus}
+        bcftools query -f "%CHROM\t%POS\t%POS\t%REF\t%ALT\n" {input.vcf} > {output.avinput}
+        resources/tools/annovar/table_annovar.pl {output.avinput} resources/tools/annovar/humandb/ -buildver hg19 -out {params.output_prefix} -remove -protocol refGene,avsnp150,dbnsfp42c -operation g,f,f -nastring . --thread {resources.cpus}
         """

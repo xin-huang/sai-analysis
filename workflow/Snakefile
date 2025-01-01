@@ -66,7 +66,7 @@ rule all:
             dataset=['1KG', 'lit'],
         ),
         expand(
-            "results/annotated_data/{dataset}/merged_{dataset}_nea_den.chr{i}.hg19_multianno.vcf",
+            "results/annotated_data/{dataset}/merged_{dataset}_nea_den.chr{i}.hg19_multianno.txt",
             i=list(range(1,23)),
             dataset=['1KG', 'lit'],
         )
