@@ -1,0 +1,150 @@
+# Copyright 2025 Xin Huang
+#
+# GNU General Public License v3.0
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, please see
+#
+#    https://www.gnu.org/licenses/gpl-3.0.en.html
+
+
+import numpy as np
+from itertools import product
+
+def filter_combinator(combinator, blacklist):
+    return lambda *args, **kwargs: (
+        wc_comb for wc_comb in combinator(*args, **kwargs)
+        if frozenset(wc_comb) not in blacklist
+    )
+
+def make_forbidden(keys, values):
+    return {
+        frozenset(dict(zip(keys, comb)).items())
+        for comb in product(*values)
+    }
+
+# Forbidden sets
+
+forbidden_1KG_plot_scores = make_forbidden(
+    ["w", "allele_type", "approach", "extension", "y", "z"],
+    [
+        [0.01],
+        ["any", "derived"],
+        ["not_filtered", "filtered"],
+        ["pdf", "png"],
+        ["=0"],
+        ["=0"],
+    ]
+)
+
+forbidden_1KG_plot_outliers = make_forbidden(
+    ["w", "allele_type", "approach", "y", "z"],
+    [
+        [0.01],
+        ["any", "derived"],
+        ["not_filtered", "filtered"],
+        ["=0"],
+        ["=0", "=1"],
+    ]
+)
+
+forbidden_1KG_validation = make_forbidden(
+    ["w", "stat", "allele_type", "approach", "y", "z"],
+    [
+        [0.01],
+        ["U50", "Q95"],
+        ["any", "derived"],
+        ["not_filtered", "filtered"],
+        ["=0"],
+        ["=0", "=1"],
+    ]
+)
+
+# Filtered combinators
+filtered_1KG_plot_scores = filter_combinator(product, forbidden_1KG_plot_scores)
+filtered_1KG_plot_outliers = filter_combinator(product, forbidden_1KG_plot_outliers)
+filtered_1KG_validation = filter_combinator(product, forbidden_1KG_validation)
+
+
+##### Target rules #####
+
+
+rule all:
+    input:
+        expand(
+            "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.overlap.annotated.tsv",
+            w=[0.01],
+            x=[0.9],
+            y=["=1"],
+            allele_type=["any", "derived"],
+        ),
+        expand(
+            "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.overlap.annotated.tsv",
+            w=[0.01],
+            x=[0.9],
+            y=["=1"],
+            allele_type=["any", "derived"],
+        ),
+        expand(
+            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.{extension}",
+            filtered_1KG_plot_scores,
+            w=[0.01],
+            y=["=1", "=0"],
+            z=["=0", "=1"],
+            allele_type=["any", "derived"],
+            approach=["not_filtered", "filtered"],
+            extension=["pdf", "png"],
+        ),
+        expand(
+            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.png",
+            filtered_1KG_plot_outliers,
+            w=[0.01],
+            y=["=1", "=0"],
+            z=["=0", "=1"],
+            allele_type=["any", "derived"],
+            approach=["not_filtered", "filtered"],
+        ),
+        expand(
+            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.annotated.tsv",
+            filtered_1KG_plot_outliers,
+            w=[0.01],
+            y=["=1", "=0"],
+            z=["=0", "=1"],
+            allele_type=["any", "derived"],
+            approach=["not_filtered", "filtered"],
+        ),
+        expand(
+            "results/validation/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{stat}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{stat}.{allele_type}.outliers.overlap.tsv",
+            filtered_1KG_validation,
+            w=[0.01],
+            y=["=1", "=0"],
+            z=["=0", "=1"],
+            stat=["U50", "Q95"],
+            allele_type=["any", "derived"],
+            approach=["not_filtered", "filtered"],
+        ),
+
+
+##### Modules #####
+
+
+include: "rules/download.smk"
+include: "rules/preprocess_1KG.smk"
+include: "rules/preprocess_lit.smk"
+include: "rules/preprocess_pan.smk"
+include: "rules/analyze_1KG.smk"
+include: "rules/analyze_lit.smk"
+include: "rules/analyze_pan.smk"
+include: "rules/make_plots.smk"
+include: "rules/validate_1KG.smk"
+include: "rules/annotate_candidates.smk"
