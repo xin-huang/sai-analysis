@@ -112,7 +112,7 @@ rule validate_Q95:
                       {params.output_dir}/1KG.{wildcards.approach}_den_${{region}}.txt |\
                       awk '{{print $1, $2, $3, $4, $5/$6, $11/$12, $17/$18, $23/$24}}' OFS="\\t" |\
                       awk {params.condition} |\
-                      awk -v w={wildcards.w} '{{ if ($5 > 1 - w) print 1 - $6; else print $6 }}' | sort -n | awk -v q=0.95 '
+                      awk '{{print $6}}' | sort -n | awk -v q=0.95 '
                       BEGIN {{ n = 0 }} 
                       {{ a[n++] = $1 }} 
                       END {{ 
