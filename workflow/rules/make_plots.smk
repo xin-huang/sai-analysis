@@ -26,12 +26,10 @@ rule plot_1KG_scores:
         u_scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.U50.{allele_type}.scores.tsv",
         q_scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.Q95.{allele_type}.scores.tsv",
     output:
-        score_plot_pdf = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.pdf",
-        score_plot_png = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.png",
+        score_plot = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.png",
     shell:
         """
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --output {output.score_plot_pdf}
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --output {output.score_plot_png}
+        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --title "" --xlabel Q95 --ylabel U50 --output {output.score_plot}
         """
 
 
@@ -44,7 +42,7 @@ rule plot_1KG_outliers:
         outlier_overlap = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.tsv",
     shell:
         """
-        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --output {output.outlier_plot}
+        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --title "" --xlabel Q95 --ylabel U50 --output {output.outlier_plot}
         """
 
 
@@ -55,15 +53,13 @@ rule plot_lit:
         u_outliers = "results/sai/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.U90.{allele_type}.outliers.tsv", 
         q_outliers = "results/sai/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.Q95.{allele_type}.outliers.tsv",
     output:
-        score_plot_pdf = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.scores.pdf",
-        score_plot_png = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.scores.png",
-        outlier_plot_png = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.png",
+        score_plot = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.scores.png",
+        outlier_plot = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.png",
         outlier_overlap = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.overlap.tsv",
     shell:
         """
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --output {output.score_plot_pdf}
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --output {output.score_plot_png}
-        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --output {output.outlier_plot_png}
+        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --title "" --xlabel Q95 --ylabel U90 --output {output.score_plot}
+        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --title "" --xlabel Q95 --ylabel U90 --output {output.outlier_plot}
         """
 
 
@@ -74,13 +70,11 @@ rule plot_pan:
         u_outliers = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.U90.{allele_type}.outliers.tsv", 
         q_outliers = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.Q95.{allele_type}.outliers.tsv",
     output:
-        score_plot_pdf = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.pdf",
-        score_plot_png = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.png",
-        outlier_plot_png = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.png",
+        score_plot = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.png",
+        outlier_plot = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.png",
         outlier_overlap = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.overlap.tsv",
     shell:
         """
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --output {output.score_plot_pdf}
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --output {output.score_plot_png}
-        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --output {output.outlier_plot_png}
+        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --title "" --xlabel Q95 --ylabel U90 --output {output.score_plot}
+        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --title "" --xlabel Q95 --ylabel U90 --output {output.outlier_plot}
         """

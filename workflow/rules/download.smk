@@ -45,15 +45,36 @@ rule download_den_genome:
         """
 
 
+rule download_nea_filter:
+    input:
+    output:
+        bed = "resources/data/NeaAltai/FilterBed/chr{i}_mask.bed.gz",
+    shell:
+        """
+        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/FilterBed/Altai/chr{wildcards.i}_mask.bed.gz -O {output.bed}
+        """
+
+
+rule download_den_filter:
+    input:
+    output:
+        bed = "resources/data/Denisova/FilterBed/chr{i}_mask.bed.gz",
+    shell:
+        """
+        wget -c http://cdna.eva.mpg.de/neandertal/Vindija/FilterBed/Denisova/chr{wildcards.i}_mask.bed.gz -O {output.bed}
+        """
+
+
 rule filter_nea_genome:
     input:
         vcf = rules.download_nea_genome.output.vcf,
+        bed = rules.download_nea_filter.output.bed,
     output:
         vcf = "resources/data/NeaAltai/filtered/chr{i}_mq25_mapab100.vcf.gz",
         index = "resources/data/NeaAltai/filtered/chr{i}_mq25_mapab100.vcf.gz.tbi",
     shell:
         """
-        bcftools view -e 'QUAL<40|FORMAT/DP<30' {input.vcf} | bgzip -c > {output.vcf}
+        bcftools view {input.vcf} -R {input.bed} | bgzip -c > {output.vcf}
         tabix -p vcf {output.vcf}
         """
 
@@ -61,12 +82,13 @@ rule filter_nea_genome:
 rule filter_den_genome:
     input:
         vcf = rules.download_den_genome.output.vcf,
+        bed = rules.download_den_filter.output.bed,
     output:
         vcf = "resources/data/Denisova/filtered/chr{i}_mq25_mapab100.vcf.gz",
         index = "resources/data/Denisova/filtered/chr{i}_mq25_mapab100.vcf.gz.tbi",
     shell:
         """
-        bcftools view -e 'QUAL<40|FORMAT/DP<30' {input.vcf} | bgzip -c > {output.vcf}
+        bcftools view {input.vcf} -R {input.bed} | bgzip -c > {output.vcf}
         tabix -p vcf {output.vcf}
         """
 
