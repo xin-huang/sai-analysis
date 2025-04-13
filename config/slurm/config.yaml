@@ -1,22 +1,20 @@
 cluster:
-        mkdir -p logs_slurm/{rule} &&
-        sbatch
-                --nodes={resources.nodes}
-                --cpus-per-task={resources.cpus}
-                --mem={resources.mem_gb}G
-                --time={resources.time}
-                --job-name=smk-{rule}-{wildcards}
-                --output=logs_slurm/{rule}/{rule}-{wildcards}-%j
-                --partition={resources.partition}
-                --exclude=node-a13,node-a25,node-d01,node-d02,node-d03,node-d04,node-d05,node-d06,node-d07,node-d08,node-d09,node-d10,node-d11,node-d12,node-d13,node-d14,node-d15,node-d16
-                {resources.gres}
+  mkdir -p logs_slurm/{rule} &&
+  sbatch
+    --nodes={resources.nodes}
+    --cpus-per-task={resources.cpus}
+    --mem={resources.mem_gb}G
+    --time={resources.time}
+    --job-name=smk-{rule}-{wildcards}
+    --output=logs_slurm/{rule}/{rule}-{wildcards}-%j
+    --exclude=node-a13,node-a25,node-d01,node-d02,node-d03,node-d04,node-d05,node-d06,node-d07,node-d08,node-d09,node-d10,node-d11,node-d12,node-d13,node-d14,node-d15,node-d16
+    {resources.gres}
 default-resources:
-        - time=360
-        - nodes=1
-        - mem_gb=4
-        - cpus=1
-        - partition=basic,short
-        - gres=''
+  - time=360
+  - nodes=1
+  - mem_gb=4
+  - cpus=1
+  - gres=''
 restart-times: 3
 max-jobs-per-second: 10
 max-status-checks-per-second: 1

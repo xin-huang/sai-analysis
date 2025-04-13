@@ -36,12 +36,11 @@ def make_forbidden(keys, values):
 # Forbidden sets
 
 forbidden_1KG_plot_scores = make_forbidden(
-    ["w", "allele_type", "approach", "extension", "y", "z"],
+    ["w", "allele_type", "approach", "y", "z"],
     [
         [0.01],
         ["any", "derived"],
         ["not_filtered", "filtered"],
-        ["pdf", "png"],
         ["=0"],
         ["=0"],
     ]
@@ -96,14 +95,13 @@ rule all:
             allele_type=["any", "derived"],
         ),
         expand(
-            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.{extension}",
+            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.png",
             filtered_1KG_plot_scores,
             w=[0.01],
             y=["=1", "=0"],
             z=["=0", "=1"],
             allele_type=["any", "derived"],
             approach=["not_filtered", "filtered"],
-            extension=["pdf", "png"],
         ),
         expand(
             "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.png",
