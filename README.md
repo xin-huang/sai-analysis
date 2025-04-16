@@ -9,7 +9,7 @@ This repository contains a Snakemake workflow designed to reproduce the results 
 
 ## Usage
 
-1. Install [Mambaforge (version: 23.3.1)](https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mambaforge-23.3.1-1-Linux-x86_64.sh).
+1. Install [miniforge](https://github.com/conda-forge/miniforge/releases). [Mambaforge (version 23.3.1)](https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mambaforge-23.3.1-1-Linux-x86_64.sh) was used for analysis.
 
 2. Clone this repository:
 
@@ -42,4 +42,10 @@ snakemake -c 1
 snakemake -c 1 --profile config/slurm
 ```
 
-Users should adjust the resource parameters in each Snakemake file to match their cluster settings and modify the `config.yaml` file in `config/slurm` to suit their job scheduler.
+Users should adjust the resource parameters in each Snakemake file to match their cluster settings and modify the `config.yaml` file in `config/slurm` according to their job scheduler.
+Before analysis, users should manually download [ANNOVAR](https://annovar.openbioinformatics.org/en/latest/user-guide/download/) and place it in `resources/tools`.
+Users can use the `conda-lock.yml` file in `workflow/envs` to create a consistent conda environment for reproducible execution. Note that `env.yaml` defines the desired environment, while `conda-lock.yml` ensures exact reproducibility by locking all package versions and dependencies.
+
+## Results
+
+Our results can be found in the `expected_results` folder.
