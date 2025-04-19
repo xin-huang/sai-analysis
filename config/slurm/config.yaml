@@ -7,7 +7,6 @@ cluster:
     --time={resources.time}
     --job-name=smk-{rule}-{wildcards}
     --output=logs_slurm/{rule}/{rule}-{wildcards}-%j
-    --exclude=node-a13,node-a25,node-d01,node-d02,node-d03,node-d04,node-d05,node-d06,node-d07,node-d08,node-d09,node-d10,node-d11,node-d12,node-d13,node-d14,node-d15,node-d16
     {resources.gres}
 default-resources:
   - time=360
