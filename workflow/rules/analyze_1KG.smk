@@ -21,39 +21,39 @@
 rule analyze_2src_samples:
     input:
         vcf = rules.add_2src_1KG.output.vcf,
-        ref = "results/processed_data/1KG/samples/1KG.ref.samples.txt",
-        tgt = "results/processed_data/1KG/samples/1KG.tgt.samples.txt",
-        src = "results/processed_data/1KG/samples/1KG.nea_den.samples.txt",
+        config = "config/analysis/1KG_w_{w}_y_{y}_z_{z}.yaml",
         anc_alleles = rules.fa2bed.output.bed,
     output:
-        scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.chr{i}.w_{w}_y_{y}_z_{z}.{stat}.{allele_type}.scores.tsv",
+        scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.chr{i}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.tsv",
+        u_logs = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.chr{i}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.U.log",
+        q_logs = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.chr{i}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.Q.log",
     params:
         chr_name = "{i}",
         win_len = 40000,
         win_step = 40000,
-        w = "{w}",
-        y = "{y} {z}",
         anc_alleles = lambda wildcards: "" if wildcards.allele_type != "derived" else f"--anc-alleles results/polarized_data/anc_info/hg19.chr{wildcards.i}.anc.alleles.bed",
     resources:
-        mem_gb = 16,
+        mem_gb = 128,
     shell:
         """
-        sai score --vcf {input.vcf} --ref {input.ref} --tgt {input.tgt} --src {input.src} --w {params.w} --y {params.y} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --stat {wildcards.stat} {params.anc_alleles}
+        sai score --vcf {input.vcf} --chr-name {params.chr_name} --output {output.scores} --win-len {params.win_len} --win-step {params.win_step} --config {input.config} {params.anc_alleles}
         """
 
 
 rule get_2src_samples_outliers:
     input:
-        scores = expand("results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.chr{i}.w_{w}_y_{y}_z_{z}.{stat}.{allele_type}.scores.tsv", i=list(range(1,23)), allow_missing=True),
+        scores = expand("results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.chr{i}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.tsv", i=list(range(1,23)), allow_missing=True),
     output:
-        all_scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{stat}.{allele_type}.scores.tsv",
-        outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{stat}.{allele_type}.outliers.tsv",
+        all_scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.tsv",
+        u_outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.U.0.999.outliers.tsv",
+        q_outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.Q.0.999.outliers.tsv",
     params:
         outlier_quantile = 0.99,
+        output_prefix = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores",
     shell:
         """
         set +o pipefail
         cat {input.scores} | head -1 > {output.all_scores}
         cat {input.scores} | grep -v "Chrom" >> {output.all_scores}
-        sai outlier --score {output.all_scores} --output {output.outliers} --quantile {params.outlier_quantile}
+        sai outlier --score {output.all_scores} --output-prefix {params.output_prefix} --quantile {params.outlier_quantile}
         """

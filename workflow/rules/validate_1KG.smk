@@ -20,7 +20,8 @@
 
 rule validate_U50:
     input:
-        outliers = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.tsv",
+        outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.U.Q.0.999.overlapping.outliers.snps.tsv",
+        #outliers = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.tsv",
         vcfs = expand("results/polarized_data/1KG/2src/1KG.nea_den.{approach}.chr{i}.vcf.gz", i=np.arange(1,23), allow_missing=True),
         ref = "results/processed_data/1KG/samples/1KG.ref.samples.txt",
         tgt = "results/processed_data/1KG/samples/1KG.tgt.samples.txt",
@@ -69,7 +70,8 @@ rule validate_U50:
 
 rule validate_Q95:
     input:
-        outliers = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.tsv",
+        outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.U.Q.0.999.overlapping.outliers.snps.tsv",
+        #outliers = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.tsv",
         vcfs = expand("results/polarized_data/1KG/2src/1KG.nea_den.{approach}.chr{i}.vcf.gz", i=np.arange(1,23), allow_missing=True),
         ref = "results/processed_data/1KG/samples/1KG.ref.samples.txt",
         tgt = "results/processed_data/1KG/samples/1KG.tgt.samples.txt",

@@ -18,81 +18,70 @@
 #    https://www.gnu.org/licenses/gpl-3.0.en.html
 
 
-import pandas as pd
 import os
+import pandas as pd
 
-# Input files from snakemake
-outlier_file = snakemake.input.outliers  # Path to the outlier file
-annotation_files = snakemake.input.annotation  # List of multianno files
-output_file = snakemake.output.annotated_candidates  # Path to save results
+outlier_file = snakemake.input.outliers          
+annotation_files = snakemake.input.annotation    
+output_file = snakemake.output.annotated_candidates
 
-with open(output_file, "w"):
-    pass  # Ensure the output file is created
+def chrom_key_from_filename(path: str) -> str:
+    base = os.path.basename(path)
+    return base.split(".chr", 1)[1].split(".", 1)[0]
 
-# Read the outlier file
-outlier_df = pd.read_csv(outlier_file, sep="\t")
+# build {chrom: filepath}
+anno_map = {chrom_key_from_filename(f): f for f in annotation_files}
 
-# Convert the annotation_files list into a dictionary for quick access
-multianno_dict = {
-    os.path.basename(f).split(".chr")[1].split(".")[0]: f for f in annotation_files
-}
+# load windows
+win = pd.read_csv(outlier_file, sep="\t")
+win = win[["Chrom", "Start", "End"]].copy()
 
-# Create a set to store unique (Chrom, Position) pairs
-candidate_positions = set()
+# normalize chromosome like 'chr1' -> '1'
+win["Chrom"] = win["Chrom"].astype(str).str.replace(r"^chr", "", regex=True)
+win["Start"] = pd.to_numeric(win["Start"], errors="coerce").astype("Int64")
+win["End"]   = pd.to_numeric(win["End"],   errors="coerce").astype("Int64")
+win = win.dropna(subset=["Chrom", "Start", "End"])
 
-# Extract unique (Chrom, Position) pairs from U candidates and Q candidates
-for _, row in outlier_df.iterrows():
-    chrom = str(row["Chrom"]).removeprefix("chr")  # Convert chromosome to string for consistency
+filtered = []
 
-    # Extract candidate positions
-    candidates = str(row["Overlapping Candidate"]).split(",")
-
-    # Add (Chrom, Position) pairs to the set
-    for c in candidates:
-        pos = int(c.split(":")[1])
-        candidate_positions.add((chrom, pos))
-
-# List to store filtered variants
-filtered_variants = []
-
-# Process each unique chromosome
-for chrom in set(chrom for chrom, _ in candidate_positions):
-    print(f"Processing chromosome {chrom}...")
-
-    # Check if the chromosome has a corresponding annotation file
-    if chrom not in multianno_dict:
-        print(f"No annotation file for chromosome: {chrom}")
+for chrom, subw in win.groupby("Chrom"):
+    if chrom not in anno_map:
         continue
 
-    # Load the multianno file
-    multianno_file = multianno_dict[chrom]
-    print(f"Reading annotation file: {multianno_file}")
+    ann = pd.read_csv(anno_map[chrom], sep="\t")
+    # ensure required columns
+    ann["Chr"] = ann["Chr"].astype(str).str.replace(r"^chr", "", regex=True)
+    ann["Start"] = pd.to_numeric(ann["Start"], errors="coerce").astype("Int64")
+    if "End" not in ann.columns:
+        ann["End"] = ann["Start"]
+    else:
+        ann["End"] = pd.to_numeric(ann["End"], errors="coerce").astype("Int64")
+    ann = ann[(ann["Chr"] == chrom) & ann["Start"].notna()]
 
-    multianno_df = pd.read_csv(multianno_file, sep="\t")
+    if ann.empty:
+        continue
 
-    # Ensure the relevant columns are in the correct type
-    multianno_df["Chr"] = multianno_df["Chr"].astype(str).apply(lambda x: x.removeprefix("chr"))
-    multianno_df["Start"] = multianno_df["Start"].astype(int)
-    multianno_df["End"] = multianno_df["End"].astype(int)
+    # pre-slice by global bounds
+    gmin = int(subw["Start"].min())
+    gmax = int(subw["End"].max())
+    ann_slice = ann[(ann["Start"] >= gmin) & (ann["Start"] <= gmax)].copy()
+    if ann_slice.empty:
+        continue
 
-    # Get all positions relevant to this chromosome
-    positions_for_chrom = {pos for c, pos in candidate_positions if c == chrom}
+    # window filter: Start in any [Start, End]
+    hits = []
+    for s0, e0 in zip(subw["Start"].astype(int), subw["End"].astype(int)):
+        hits.append(ann_slice[(ann_slice["Start"] >= s0) & (ann_slice["Start"] <= e0)])
+    if hits:
+        sub = pd.concat(hits, ignore_index=True).drop_duplicates()
+        if not sub.empty:
+            filtered.append(sub)
 
-    # Filter variants where 'Start' matches any candidate position
-    variants_in_region = multianno_df[multianno_df["Start"].isin(positions_for_chrom)]
-
-    print(f"Filtered {len(variants_in_region)} variants for chromosome {chrom}.")
-
-    # Append to the results list
-    if not variants_in_region.empty:
-        filtered_variants.append(variants_in_region)
-
-# Combine all filtered variants into a single DataFrame
-if filtered_variants:
-    result_df = pd.concat(filtered_variants, ignore_index=True)
-    result_df["Chr"] = result_df["Chr"].astype(int)
-    result_df = result_df.sort_values(
-        by=["Chr", "Start", "End"], ascending=[True, True, True]
-    )
-    # Save the filtered variants to a file
-    result_df.to_csv(output_file, sep="\t", index=False)
+# write output
+if filtered:
+    res = pd.concat(filtered, ignore_index=True)
+    res = res.sort_values(by=["Chr", "Start", "End"], ascending=[True, True, True])
+    res.to_csv(output_file, sep="\t", index=False)
+else:
+    # empty file with header only
+    pd.DataFrame().to_csv(output_file, sep="\t", index=False)

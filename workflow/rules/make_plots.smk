@@ -18,63 +18,69 @@
 #    https://www.gnu.org/licenses/gpl-3.0.en.html
 
 
-ruleorder: plot_1KG_outliers > plot_1KG_scores
+ruleorder: plot_pr_curve > plot_roc_curve
+ruleorder: plot_pr_curve_mispecify_anc_alleles > plot_pr_curve
 
 
-rule plot_1KG_scores:
+rule plot_roc_curve:
     input:
-        u_scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.U50.{allele_type}.scores.tsv",
-        q_scores = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.Q95.{allele_type}.scores.tsv",
+        neu = expand(
+            "results/simulated_data/run{run}/{scenario}_introgression/simulation.run{run}.{scenario}_introgression.tsv",
+            run=list(range(0, num_runs)),
+            allow_missing=True,
+        ),
+        sel = expand(
+            "results/simulated_data/run{run}/adaptive_introgression/simulation.run{run}.s{s}.tsv",
+            run=list(range(0, num_runs)),
+            allow_missing=True,
+        ),
     output:
-        score_plot = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.png",
-    shell:
-        """
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --title "" --xlabel Q95 --ylabel U50 --output {output.score_plot}
-        """
+        plot = "results/plots/roc/{scenario}_introgression_vs_adaptive_introgression_s{s}.svg",
+    script:
+        "../scripts/plot_roc_curve.py"
 
 
-rule plot_1KG_outliers:
+rule plot_pr_curve:
     input:
-        u_outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.U50.{allele_type}.outliers.tsv",
-        q_outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.Q95.{allele_type}.outliers.tsv",
+        wo = expand(
+            "results/simulated_data/run{run}/wo_introgression/simulation.run{run}.wo_introgression.tsv",
+            run=list(range(0, num_runs)),
+            allow_missing=True,
+        ),
+        neu = expand(
+           "results/simulated_data/run{run}/neutral_introgression/simulation.run{run}.neutral_introgression.tsv",
+           run=list(range(0, num_runs)),
+           allow_missing=True,
+        ),
+        sel = expand(
+            "results/simulated_data/run{run}/adaptive_introgression/simulation.run{run}.s{s}.tsv",
+            run=list(range(0, num_runs)),
+            allow_missing=True,
+        ),
     output:
-        outlier_plot = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.png",
-        outlier_overlap = "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.tsv",
-    shell:
-        """
-        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --title "" --xlabel Q95 --ylabel U50 --output {output.outlier_plot}
-        """
+        plot = "results/plots/pr/non_adaptive_introgression_vs_adaptive_introgression_s{s}.svg",
+    script:
+        "../scripts/plot_pr_curve.py"
 
 
-rule plot_lit:
+rule plot_pr_curve_mispecify_anc_alleles:
     input:
-        u_scores = "results/sai/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.U90.{allele_type}.scores.tsv", 
-        q_scores = "results/sai/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.Q95.{allele_type}.scores.tsv",
-        u_outliers = "results/sai/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.U90.{allele_type}.outliers.tsv", 
-        q_outliers = "results/sai/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.Q95.{allele_type}.outliers.tsv",
+        wo = expand(
+            "results/simulated_data/run{run}/wo_introgression/simulation.run{run}.wo_introgression.mis.{prop}.tsv",
+            run=list(range(0, num_runs)),
+            allow_missing=True,
+        ),
+        neu = expand(
+           "results/simulated_data/run{run}/neutral_introgression/simulation.run{run}.neutral_introgression.mis.{prop}.tsv",
+           run=list(range(0, num_runs)),
+           allow_missing=True,
+        ),
+        sel = expand(
+            "results/simulated_data/run{run}/adaptive_introgression/simulation.run{run}.s{s}.mis.{prop}.tsv",
+            run=list(range(0, num_runs)),
+            allow_missing=True,
+        ),
     output:
-        score_plot = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.scores.png",
-        outlier_plot = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.png",
-        outlier_overlap = "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.overlap.tsv",
-    shell:
-        """
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --title "" --xlabel Q95 --ylabel U90 --output {output.score_plot}
-        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --title "" --xlabel Q95 --ylabel U90 --output {output.outlier_plot}
-        """
-
-
-rule plot_pan:
-    input:
-        u_scores = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.U90.{allele_type}.scores.tsv", 
-        q_scores = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.Q95.{allele_type}.scores.tsv",
-        u_outliers = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.U90.{allele_type}.outliers.tsv", 
-        q_outliers = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.Q95.{allele_type}.outliers.tsv",
-    output:
-        score_plot = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.png",
-        outlier_plot = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.png",
-        outlier_overlap = "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.overlap.tsv",
-    shell:
-        """
-        sai plot --u-file {input.u_scores} --q-file {input.q_scores} --title "" --xlabel Q95 --ylabel U90 --output {output.score_plot}
-        sai plot --u-file {input.u_outliers} --q-file {input.q_outliers} --title "" --xlabel Q95 --ylabel U90 --output {output.outlier_plot}
-        """
+        plot = "results/plots/pr/non_adaptive_introgression_vs_adaptive_introgression_s{s}.mis.{prop}.svg",
+    script:
+        "../scripts/plot_pr_curve.py"
