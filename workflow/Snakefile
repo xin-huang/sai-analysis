@@ -35,7 +35,7 @@ def make_forbidden(keys, values):
 
 # Forbidden sets
 
-forbidden_1KG_plot_scores = make_forbidden(
+forbidden_1KG_scores = make_forbidden(
     ["w", "allele_type", "approach", "y", "z"],
     [
         [0.01],
@@ -46,7 +46,19 @@ forbidden_1KG_plot_scores = make_forbidden(
     ]
 )
 
-forbidden_1KG_plot_outliers = make_forbidden(
+forbidden_1KG_outliers = make_forbidden(
+    ["w", "allele_type", "approach", "y", "z", "stat"],
+    [
+        [0.01],
+        ["any", "derived"],
+        ["not_filtered", "filtered"],
+        ["=0"],
+        ["=0", "=1"],
+        ["U", "Q"],
+    ]
+)
+
+forbidden_1KG_overlapping = make_forbidden(
     ["w", "allele_type", "approach", "y", "z"],
     [
         [0.01],
@@ -70,10 +82,13 @@ forbidden_1KG_validation = make_forbidden(
 )
 
 # Filtered combinators
-filtered_1KG_plot_scores = filter_combinator(product, forbidden_1KG_plot_scores)
-filtered_1KG_plot_outliers = filter_combinator(product, forbidden_1KG_plot_outliers)
+filtered_1KG_scores = filter_combinator(product, forbidden_1KG_scores)
+filtered_1KG_outliers = filter_combinator(product, forbidden_1KG_outliers)
+filtered_1KG_overlapping = filter_combinator(product, forbidden_1KG_overlapping)
 filtered_1KG_validation = filter_combinator(product, forbidden_1KG_validation)
 
+# Number of simulation runs
+num_runs = 1000
 
 ##### Target rules #####
 
@@ -81,22 +96,28 @@ filtered_1KG_validation = filter_combinator(product, forbidden_1KG_validation)
 rule all:
     input:
         expand(
-            "results/plots/1src/lit/nea/w_{w}_y_{y}/{allele_type}/lit.nea.w_{w}_y_{y}.{allele_type}.outliers.overlap.annotated.tsv",
+            "results/plots/roc/{scenario}_introgression_vs_adaptive_introgression_s{s}.svg",
+            scenario=["wo", "neutral"],
+            s=["0.001", "0.01", "0.1"],
+        ),
+        expand(
+            "results/plots/pr/non_adaptive_introgression_vs_adaptive_introgression_s{s}.svg",
+            s=["0.001", "0.01", "0.1"],
+        ),
+        expand(
+            "results/plots/pr/non_adaptive_introgression_vs_adaptive_introgression_s{s}.mis.{prop}.svg",
+            s=["0.01", "0.1"],
+            prop=["0.1", "0.5"],
+        ),
+        expand(
+            "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.Q.0.999.outliers.tsv",
             w=[0.01],
-            x=[0.9],
             y=["=1"],
             allele_type=["any", "derived"],
         ),
         expand(
-            "results/plots/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.outliers.overlap.annotated.tsv",
-            w=[0.01],
-            x=[0.9],
-            y=["=1"],
-            allele_type=["any", "derived"],
-        ),
-        expand(
-            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.png",
-            filtered_1KG_plot_scores,
+            "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.Q.0.999.outliers.tsv",
+            filtered_1KG_scores,
             w=[0.01],
             y=["=1", "=0"],
             z=["=0", "=1"],
@@ -104,17 +125,21 @@ rule all:
             approach=["not_filtered", "filtered"],
         ),
         expand(
-            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.png",
-            filtered_1KG_plot_outliers,
+            "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.{stat}.0.999.outliers.candidate.genes.tsv",
             w=[0.01],
-            y=["=1", "=0"],
-            z=["=0", "=1"],
+            y=["=1"],
             allele_type=["any", "derived"],
-            approach=["not_filtered", "filtered"],
+            stat=["DD", "Danc", "Dplus", "df", "fd", "U", "Q"],
         ),
         expand(
-            "results/plots/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.outliers.overlap.annotated.tsv",
-            filtered_1KG_plot_outliers,
+            "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.0.999.outliers.overlapping.candidate.genes.tsv",
+            w=[0.01],
+            y=["=1"],
+            allele_type=["any", "derived"],
+        ),
+        expand(
+            "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.U.Q.0.999.overlapping.outliers.snps.genes.tsv",
+            filtered_1KG_overlapping,
             w=[0.01],
             y=["=1", "=0"],
             z=["=0", "=1"],
@@ -132,17 +157,15 @@ rule all:
             approach=["not_filtered", "filtered"],
         ),
 
-
 ##### Modules #####
 
 
 include: "rules/download.smk"
 include: "rules/preprocess_1KG.smk"
-include: "rules/preprocess_lit.smk"
 include: "rules/preprocess_pan.smk"
 include: "rules/analyze_1KG.smk"
-include: "rules/analyze_lit.smk"
 include: "rules/analyze_pan.smk"
 include: "rules/make_plots.smk"
 include: "rules/validate_1KG.smk"
 include: "rules/annotate_candidates.smk"
+include: "rules/simulation.smk"
