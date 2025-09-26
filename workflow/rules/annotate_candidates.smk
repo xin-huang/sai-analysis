@@ -21,18 +21,6 @@
 import numpy as np
 
 
-rule annotate_1KG_candidates:
-    input:
-        outliers = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.{stat}.0.999.outliers.tsv",
-        annotation = expand("results/annotated_data/1KG/1KG.nea_den.{approach}.chr{i}.hg19_multianno.txt", i=list(range(1,23)), allow_missing=True),
-    output:
-        annotated_candidates = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.{stat}.0.999.outliers.annotated.tsv",
-    resources:
-        mem_gb = 128,
-    script:
-       "../scripts/get_annotated_candidates.py"
-
-
 rule annotate_pan_candidates:
     input:
         outliers = "results/sai/1src/pan/PPA/w_{w}_y_{y}/{allele_type}/pan.PPA.w_{w}_y_{y}.{allele_type}.scores.{stat}.0.999.outliers.tsv",
@@ -77,6 +65,7 @@ rule get_1KG_overlapping_candidate_SNPs:
 rule get_1KG_overlapping_candidate_SNPs_genes:
     input:
         candidate_snps = rules.get_1KG_overlapping_candidate_SNPs.output.overlapping,
+        annotation = expand("results/annotated_data/1KG/1KG.nea_den.{approach}.chr{i}.hg19_multianno.txt", i=list(range(1,23)), allow_missing=True),
     output:
         candidate_genes = "results/sai/2src/1KG/nea_den/w_{w}_y_{y}_z_{z}/{allele_type}/1KG.nea_den.{approach}.w_{w}_y_{y}_z_{z}.{allele_type}.scores.{stat}.0.999.overlapping.outliers.snps.genes.tsv",
     shell:
