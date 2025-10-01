@@ -17,6 +17,14 @@
 //
 //    https://www.gnu.org/licenses/gpl-3.0.en.html
 
+function (integer) nextSeed(void) {
+    base = sim.getValue("seed0");
+    i    = sim.getValue("reseed_n") + 1;
+    new  = asInteger((base + i * 1315423911) % asInteger(2^62));
+    sim.setValue("reseed_n", i);
+    return new;
+}
+
 initialize() {
     initializeMutationRate(1.5e-8);
     initializeMutationType("m1", 0.5, "f", 0.0);
@@ -26,7 +34,11 @@ initialize() {
     initializeRecombinationRate(1e-8);
 }
 
+
 1 early() {
+    sim.setValue("seed0", getSeed());
+    sim.setValue("reseed_n", 0);
+    sim.setValue("ckpt", tempdir() + "before_selection." + getSeed() + ".txt");
     sim.addSubpop("p1", 10000); 
 }
 
@@ -35,7 +47,7 @@ initialize() {
 }
 
 201000 late() {
-    sim.outputFull(tempdir() + "slim_before_selection.txt");    
+    sim.outputFull(sim.getValue("ckpt"));    
     target = sample(p1.genomes, 1);
     target.addNewDrawnMutation(m2, 19999);
 }
@@ -44,8 +56,8 @@ initialize() {
     mut = sim.mutationsOfType(m2);
     if (size(mut) == 0) {
         cat(getSeed() + ": The beneficial allele is LOST in the source population – RESTARTING\n");
-        sim.readFromPopulationFile(tempdir() + "slim_before_selection.txt");
-        setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+        sim.readFromPopulationFile(sim.getValue("ckpt"));
+        setSeed(nextSeed());
         target = sample(p1.genomes, 1);
         target.addNewDrawnMutation(m2, 19999);
     }
@@ -57,8 +69,8 @@ initialize() {
     if (size(mut) != 0) {
         if (mut_frq != 1.0) {
             cat(getSeed() + ": The beneficial allele is NOT FIXED in the source population – RESTARTING\n");
-            sim.readFromPopulationFile(tempdir() + "slim_before_selection.txt");
-            setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+            sim.readFromPopulationFile(sim.getValue("ckpt"));
+            setSeed(nextSeed());
             target = sample(p1.genomes, 1);
             target.addNewDrawnMutation(m2, 19999);
         }
@@ -71,6 +83,18 @@ initialize() {
 
 214401 early() {
     p2.setMigrationRates(p1, 0.02);
+}
+
+214401 late() {
+    nMig = sum(p2.individuals.migrant);
+    cat("migrant offspring in p2 this gen: " + nMig + "\n");
+    if (nMig == 0) {
+        cat(getSeed() + ": No migrant offspring in p2 from p1 – RESTARTING\n");
+        sim.readFromPopulationFile(sim.getValue("ckpt"));
+        setSeed(nextSeed());
+        target = sample(p1.genomes, 1);
+        target.addNewDrawnMutation(m2, 19999);
+    }
 }
 
 214402 early() {
