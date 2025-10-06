@@ -20,6 +20,14 @@
 
 ruleorder: calc_stats_adaptive_introgression_mispecify_anc_alleles > calc_stats_adaptive_introgression
 
+import numpy as np
+
+np.random.seed(4836)
+seed_list = { 
+    "wo": np.random.randint(1, 2**31, 1000),
+    "neutral": np.random.randint(1, 2**31, 1000),
+    "adaptive": np.random.randint(1, 2**31, 1000),
+}
 
 rule simulate_neutral_introgression:
     input:
@@ -31,9 +39,10 @@ rule simulate_neutral_introgression:
         src_vcf = "results/simulated_data/run{run}/{scenario}_introgression/src.run{run}.vcf",
         tgt_vcf = "results/simulated_data/run{run}/{scenario}_introgression/tgt.run{run}.vcf",
         ref_vcf = "results/simulated_data/run{run}/{scenario}_introgression/ref.run{run}.vcf",
+        seed = lambda wildcards: seed_list[wildcards.scenario][int(wildcards.run)],
     shell:
         """
-        slim {input.slim_script} | awk -F "#OUT:" 'BEGIN{{RS=""}}{{print $2 > "{params.src_vcf}"; print $3 > "{params.tgt_vcf}"; print $4 > "{params.ref_vcf}"}}'
+        slim -s {params.seed} {input.slim_script} | awk -F "#OUT:" 'BEGIN{{RS=""}}{{print $2 > "{params.src_vcf}"; print $3 > "{params.tgt_vcf}"; print $4 > "{params.ref_vcf}"}}'
         
         sed -i '/^$/d;/SV/d' {params.src_vcf}
         sed -i '/^$/d;/SV/d' {params.tgt_vcf}
@@ -63,10 +72,11 @@ rule simulate_adaptive_introgression:
     params:
         src_vcf = "results/simulated_data/run{run}/adaptive_introgression/src.run{run}.s{s}.vcf",
         tgt_vcf = "results/simulated_data/run{run}/adaptive_introgression/tgt.run{run}.s{s}.vcf",
-        ref_vcf = "results/simulated_data/run{run}/adaptive_introgression/ref.run{run}.s{s}.vcf", 
+        ref_vcf = "results/simulated_data/run{run}/adaptive_introgression/ref.run{run}.s{s}.vcf",
+        seed = lambda wildcards: seed_list["adaptive"][int(wildcards.run)],
     shell:
         """
-        slim -d s={wildcards.s} {input.slim_script} | awk -F "#OUT:" 'BEGIN{{RS=""}}{{print $2 > "{params.src_vcf}"; print $3 > "{params.tgt_vcf}"; print $4 > "{params.ref_vcf}"}}'
+        slim -s {params.seed} -d s={wildcards.s} {input.slim_script} | awk -F "#OUT:" 'BEGIN{{RS=""}}{{print $2 > "{params.src_vcf}"; print $3 > "{params.tgt_vcf}"; print $4 > "{params.ref_vcf}"}}'
 
         sed -i '/^$/d;/SV/d' {params.src_vcf}
         sed -i '/^$/d;/SV/d' {params.tgt_vcf}
