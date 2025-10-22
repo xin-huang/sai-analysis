@@ -119,18 +119,6 @@ rule download_1KG_info:
         """
 
 
-rule download_lit_genomes:
-    input:
-    output:
-        map = "resources/data/lit/lit.map",
-        ped = "resources/data/lit/lit.ped",
-    shell:
-        """
-        wget -c https://data.mendeley.com/public-files/datasets/d2xt5hdm5j/files/04ec1cb6-f72f-4fc6-b443-db932cc59028/file_downloaded -O {output.map}
-        wget -c https://data.mendeley.com/public-files/datasets/d2xt5hdm5j/files/ac649f46-2ef1-4650-9c7f-bf279de07d3f/file_downloaded -O {output.ped}
-        """
-
-
 rule download_pan_genomes:
     input:
     output:
