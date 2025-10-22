@@ -36,6 +36,9 @@ rule plot_roc_curve:
         ),
     output:
         plot = "results/plots/roc/{scenario}_introgression_vs_adaptive_introgression_s{s}.svg",
+    params:
+        seed = 4836,
+        replicates = 1000,
     script:
         "../scripts/plot_roc_curve.py"
 
@@ -59,6 +62,9 @@ rule plot_pr_curve:
         ),
     output:
         plot = "results/plots/pr/non_adaptive_introgression_vs_adaptive_introgression_s{s}.svg",
+    params:
+        seed = 4836,
+        replicates = 1000,
     script:
         "../scripts/plot_pr_curve.py"
 
@@ -82,5 +88,8 @@ rule plot_pr_curve_mispecify_anc_alleles:
         ),
     output:
         plot = "results/plots/pr/non_adaptive_introgression_vs_adaptive_introgression_s{s}.mis.{prop}.svg",
+    params:
+        seed = 4836,
+        replicates = 1000,
     script:
         "../scripts/plot_pr_curve.py"

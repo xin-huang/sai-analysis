@@ -52,36 +52,45 @@ wo_all = list(snakemake.input.wo)
 neu_all = list(snakemake.input.neu)
 sel_all = list(snakemake.input.sel)
 
-R = 1000
-recall_grid = np.linspace(0, 1, 200)
+recall_grid = [0, 0.5, 1]
 mean_curves = {col: [] for col in cols}
 ap_logs = {col: [] for col in cols}
 
+np.random.seed(int(snakemake.params.seed))
+R = int(snakemake.params.replicates)
+seed_list = np.random.randint(1, 2**31, R)
+
 for r in range(R):
-    random.seed(2487 + r)
-    wo_files = random.sample(wo_all, 980)
-    neu_files = random.sample(neu_all, 18)
-    sel_files = random.sample(sel_all, 2)
+    rng = np.random.default_rng(seed_list[r])
+    wo_files = rng.choice(wo_all, 980, replace=False)
+    neu_files = rng.choice(neu_all, 18, replace=False)
+    sel_files = rng.choice(sel_all, 2, replace=False)
 
     df_wo = _concat_df(wo_files, cols=cols, label=0)
     df_neu = _concat_df(neu_files, cols=cols, label=0)
     df_sel = _concat_df(sel_files, cols=cols, label=1)
     df = pd.concat([df_wo, df_neu, df_sel], ignore_index=True)
-    y_true = df["y"].to_numpy()
+    y_true = df["y"].to_numpy().copy()
 
     for col in cols:
-        y_score = pd.to_numeric(df[col], errors="coerce").to_numpy()
+        y_score = df[col].to_numpy().copy()
         mask = np.isfinite(y_score)
-        if mask.sum() == 0:
+        if mask.sum() == 0 or y_true[mask].sum() != 2: # ensure two positive instances' scores are not nan
             continue
         precision, recall, _ = precision_recall_curve(y_true[mask], y_score[mask])
         ap = average_precision_score(y_true[mask], y_score[mask])
         ap_logs[col].append(ap)
 
-        # reverse recall from 1->0 to 0->1
-        # because xp must be increasing in np.interp()
-        prec_interp = np.interp(recall_grid, recall[::-1], precision[::-1])
-        mean_curves[col].append(prec_interp)
+        uniq_recall, idx = np.unique(recall, return_inverse=True)
+        # uniq_recall: [0, 0.5, 1]
+        max_precision = np.full_like(uniq_recall, -np.inf, dtype=float)
+        np.maximum.at(max_precision, idx, precision)
+
+        if np.unique((y_score[mask][-2:])).size == 1:
+            # uniq_recall: [0, 1]
+            max_precision = np.insert(max_precision.astype(float), 1, max_precision[1])
+
+        mean_curves[col].append(max_precision)
 
 plt.figure(figsize=(5, 5), dpi=300)
 
@@ -94,7 +103,8 @@ for col in cols:
     arr_ap = np.array(ap_logs[col])
     mean_ap = arr_ap.mean()
     mean_prec = np.mean(mean_curves[col], axis=0)
-    plt.plot(recall_grid, mean_prec, lw=2, label=f"{stats[col]} (mean AP = {mean_ap:.2f})")
+    # https://scikit-learn.org/0.19/auto_examples/model_selection/plot_precision_recall.html#plot-the-precision-recall-curve
+    plt.step(recall_grid[::-1], mean_prec[::-1], where="post", lw=2, label=f"{stats[col]} (mean AP = {mean_ap:.2f})")
 
 plt.xlim(0, 1)
 plt.ylim(0, 1)

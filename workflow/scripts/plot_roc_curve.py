@@ -51,20 +51,23 @@ stats = {
 neu_all = list(snakemake.input.neu)
 sel_all = list(snakemake.input.sel)
 
-R = 1000
+np.random.seed(int(snakemake.params.seed))
+R = int(snakemake.params.replicates)
+seed_list = np.random.randint(1, 2**31, R)
+
 fpr_grid = np.linspace(0, 1, 200)
 mean_curves = {col: [] for col in cols}
 auc_logs = {col: [] for col in cols}
 
 for r in range(R):
-    random.seed(2487 + r)
-    neu_files = random.sample(neu_all, 500)
-    sel_files = random.sample(sel_all, 500)
+    rng = np.random.default_rng(seed_list[r])
+    neu_files = rng.choice(neu_all, 500, replace=False)
+    sel_files = rng.choice(sel_all, 500, replace=False)
 
     df_neu = _concat_df(neu_files, cols=cols, label=0)
     df_sel = _concat_df(sel_files, cols=cols, label=1)
     df = pd.concat([df_neu, df_sel], ignore_index=True)
-    y_true = df["y"].to_numpy()
+    y_true = df["y"].to_numpy().copy()
 
     for col in cols:
         y_score = df[col].to_numpy().copy()
