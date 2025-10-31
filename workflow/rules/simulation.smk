@@ -24,9 +24,9 @@ import numpy as np
 
 np.random.seed(4836)
 seed_list = { 
-    "wo": np.random.randint(1, 2**31, 1000),
-    "neutral": np.random.randint(1, 2**31, 1000),
-    "adaptive": np.random.randint(1, 2**31, 1000),
+    "wo": np.random.randint(1, 2**31, num_runs),
+    "neutral": np.random.randint(1, 2**31, num_runs),
+    "adaptive": np.random.randint(1, 2**31, num_runs),
 }
 
 rule simulate_neutral_introgression:
@@ -136,6 +136,8 @@ rule mispecify_anc_alleles_neutral_introgression:
         anc_alleles = rules.simulate_neutral_introgression.output.anc_alleles,
     output:
         anc_alleles = "results/simulated_data/run{run}/{scenario}_introgression/simulation.run{run}.anc.alleles.mis.{prop}.bed",
+    params:
+        seed = lambda wildcards: seed_list[wildcards.scenario][int(wildcards.run)],
     script:
        "../scripts/mispecify_anc_alleles.py"
 
@@ -145,6 +147,8 @@ rule mispecify_anc_alleles_adaptive_introgression:
         anc_alleles = rules.simulate_adaptive_introgression.output.anc_alleles,
     output:
         anc_alleles = "results/simulated_data/run{run}/adaptive_introgression/simulation.run{run}.s{s}.anc.alleles.mis.{prop}.bed",
+    params:
+        seed = lambda wildcards: seed_list["adaptive"][int(wildcards.run)],
     script:
        "../scripts/mispecify_anc_alleles.py"
 

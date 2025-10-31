@@ -24,6 +24,7 @@ import numpy as np
 infile = snakemake.input.anc_alleles
 outfile = snakemake.output.anc_alleles
 prop = float(snakemake.wildcards.prop)
+seed = int(snakemake.params.seed)
 
 df = pd.read_csv(infile, sep="\t", header=None,
                  names=["chrom","start","end","allele"])
@@ -31,7 +32,7 @@ df = pd.read_csv(infile, sep="\t", header=None,
 n = len(df)
 k = int(n * prop)
 
-rng = np.random.default_rng()
+rng = np.random.default_rng(seed)
 pick = rng.choice(df.index, size=k, replace=False)
 df.loc[pick, "allele"] = "T"
 
